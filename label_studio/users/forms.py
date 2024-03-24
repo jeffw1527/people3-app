@@ -28,6 +28,24 @@ class LoginForm(forms.Form):
     password = forms.CharField(widget=forms.PasswordInput())
     persist_session = forms.BooleanField(widget=forms.CheckboxInput(), required=False)
 
+    def clean_user(self, *args, **kwargs):
+        email = self.email.lower()
+        password = self.password
+        if len(email) >= EMAIL_MAX_LENGTH:
+            raise forms.ValidationError('Email is too long')
+
+        # advanced way for user auth
+        user = settings.USER_AUTH(User, email, password)
+
+        # regular access
+        if user is None:
+            user = auth.authenticate(email=email, password=password)
+
+        if user and user.is_active:
+            persist_session = True
+            return {'user': user, 'persist_session': persist_session}
+        else:
+            raise forms.ValidationError(INVALID_USER_ERROR)
     def clean(self, *args, **kwargs):
         cleaned = super(LoginForm, self).clean()
         email = cleaned.get('email', '').lower()
@@ -70,6 +88,9 @@ class UserSignupForm(forms.Form):
             raise forms.ValidationError('User with username already exists')
         return username
 
+    def clean_user(self):
+        email = self.email.lower()
+        return User.objects.filter(email=email).first()
     def clean_email(self):
         email = self.cleaned_data.get('email').lower()
         if len(email) >= EMAIL_MAX_LENGTH:

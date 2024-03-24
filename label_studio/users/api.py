@@ -11,12 +11,18 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.functions import check_avatar
 from users.models import User
 from users.serializers import UserSerializer, UserSerializerUpdate
+from django.utils.http import is_safe_url
+from users import forms
+from organizations.forms import OrganizationSignupForm
+from django.conf import settings
+from users.functions import login, proceed_registration
+from core.utils.common import load_func
 
 logger = logging.getLogger(__name__)
 
@@ -194,7 +200,60 @@ class UserResetTokenAPI(APIView):
         token = user.reset_token()
         logger.debug(f'New token for user {user.pk} is {token.key}')
         return Response({'token': token.key}, status=201)
+    
 
+@method_decorator(
+    name='post',
+    decorator=swagger_auto_schema(
+        tags=['Users'],
+        operation_summary='SignUp or login',
+        operation_description='',
+        responses={
+            200: openapi.Response(
+                description='success',
+                schema=openapi.Schema(
+                    description='',
+                    type=openapi.TYPE_OBJECT,
+                    # properties={'success': openapi.Schema(description='success', type=openapi.Boolean)},
+                ),
+            )
+        },
+    ),
+)
+class UserSignUpAPI(APIView):
+    parser_classes = (JSONParser, FormParser, MultiPartParser)
+    queryset = User.objects.all()
+    permission_classes = (AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+        """Sign up page"""
+        user = request.user
+        next_page = request.GET.get('next')
+        token = request.GET.get('token')
+        
+        # checks if the URL is a safe redirection.
+        if user.is_authenticated:
+            return Response({'success': True}, status=200)
+        if request.method == 'POST' and hasattr(request, '_data'):
+            user_info = request.data.get('user')
+            user_form = forms.UserSignupForm()
+            organization_form = OrganizationSignupForm()
+            user_form.email = user_info.get('email')
+            user_form.password = user_info.get('password')
+            
+            login_form = load_func(settings.USER_LOGIN_FORM)
+            form = login_form()
+            form.email = user_info.get('email')
+            form.password = user_info.get('password')
+            form.persist_session = True
+            if user_form.is_valid():
+                redirect_response = proceed_registration(request, user_form, organization_form, next_page)
+                return Response({'success': True}, status=200)
+            else:
+                
+                user = form.clean_user()['user']
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                return Response({'success': True}, status=200)
 
 @method_decorator(
     name='get',

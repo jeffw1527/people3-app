@@ -16,6 +16,7 @@ from organizations.models import Organization
 from rest_framework.authtoken.models import Token
 from users import forms
 from users.functions import login, proceed_registration
+from rest_framework.response import Response
 
 logger = logging.getLogger()
 
@@ -31,16 +32,41 @@ def logout(request):
     return redirect('/')
 
 
-@enforce_csrf_checks
+# @enforce_csrf_checks
 def user_signup(request):
     """Sign up page"""
     user = request.user
     next_page = request.GET.get('next')
     token = request.GET.get('token')
-
+    
     # checks if the URL is a safe redirection.
     if not next_page or not is_safe_url(url=next_page, allowed_hosts=request.get_host()):
         next_page = reverse('projects:project-index')
+    if user.is_authenticated:
+        return Response({'success': True}, status=200)
+    if request.method == 'POST' and hasattr(request, '_data'):
+        user_info = request._data.get('user')
+        user_form = forms.UserSignupForm()
+        organization_form = OrganizationSignupForm()
+        user_form.email = user_info.get('email')
+        user_form.password = user_info.get('password')
+        
+        login_form = load_func(settings.USER_LOGIN_FORM)
+        form = login_form()
+        form.email = user_info.get('email')
+        form.password = user_info.get('password')
+        form.persist_session = True
+        if user_form.is_valid():
+            redirect_response = proceed_registration(request, user_form, organization_form, next_page)
+            return Response({'success': True}, status=200)
+        else:
+            
+            user = form.clean_user()['user']
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            return Response({'success': True}, status=200)
+    
+
+
 
     user_form = forms.UserSignupForm()
     organization_form = OrganizationSignupForm()
@@ -104,6 +130,7 @@ def user_login(request):
     form = login_form()
 
     if user.is_authenticated:
+        next_page = reverse('projects:project-index')
         return redirect(next_page)
 
     if request.method == 'POST':
@@ -121,6 +148,7 @@ def user_login(request):
             user.active_organization_id = org_pk
             user.save(update_fields=['active_organization'])
             return redirect(next_page)
+    return render(request, 'users/auth.html', {'form': form, 'next': next_page})
 
     if flag_set('fflag_feat_front_lsdv_e_297_increase_oss_to_enterprise_adoption_short'):
         return render(request, 'users/new-ui/user_login.html', {'form': form, 'next': next_page})

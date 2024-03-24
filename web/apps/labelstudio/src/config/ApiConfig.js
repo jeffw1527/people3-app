@@ -5,6 +5,7 @@ export const API_CONFIG = {
     // Users
     users: "/users",
     me: "/current-user/whoami",
+    signup: "POST:/user/signup",
 
     // Organization
     memberships: "/organizations/:pk/memberships",
