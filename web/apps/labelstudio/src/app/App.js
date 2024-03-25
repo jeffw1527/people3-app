@@ -73,7 +73,7 @@ const login = async (api, history) => {
     body: {
       user: {
         email: userInfo.google_email,
-        password: 'weijiafu152',
+        password: 'asdfdsgdf3424543',
       },
     },
   });
