@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 logger.setLevel(logging.DEBUG)
 
+
 # handler = logging.StreamHandler(sys.stdout)
 # handler.setLevel(logging.DEBUG)
 # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -240,31 +241,23 @@ class UserSignUpAPI(APIView):
         next_page = request.GET.get('next')
         token = request.GET.get('token')
 
+        organization_form = OrganizationSignupForm()
         # checks if the URL is a safe redirection.
         if user.is_authenticated:
             return Response({'success': True}, status=200)
         if request.method == 'POST' and hasattr(request, '_data'):
-            user_info = request.data.get('user')
-            user_form = forms.UserSignupForm()
-            organization_form = OrganizationSignupForm()
-            user_form.email = user_info.get('email')
-            user_form.password = user_info.get('password')
-            logger.debug(">>>> test   .......")
-            logger.info(">>>> user form email: %s", user_form.email)
-            logger.info(">>>> user form password: %s", user_form.password)
-            login_form = load_func(settings.USER_LOGIN_FORM)
-            form = login_form()
-            form.email = user_info.get('email')
-            form.password = user_info.get('password')
-            logger.info(">>>> user info email: %s", form.email)
-            logger.info(">>>> user info password: %s", form.password)
-            form.persist_session = True
+            user_form = forms.ParticleSignForm(request.data)
+            user_info = request.data.get("user")
+            if not user_info:
+                return Response({'success': False, "message": "user info can't be empty"}, status=400)
+            email = user_info.get("email")
+            if email and User.objects.filter(email=email).exists():
+                # user already exists go to login
+                user = user_form.clean_user()['user']
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                return Response({'success': True}, status=200)
             if user_form.is_valid():
                 redirect_response = proceed_registration(request, user_form, organization_form, next_page)
-                return Response({'success': True}, status=200)
-            else:
-                user = form.clean_user()['user']
-                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                 return Response({'success': True}, status=200)
 
 
