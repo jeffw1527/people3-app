@@ -44,7 +44,7 @@ def user_signup(request):
         next_page = reverse('projects:project-index')
     if user.is_authenticated:
         return Response({'success': True}, status=200)
-    if request.method == 'POST' and hasattr(request, '_data'):
+    if False and request.method == 'POST' and hasattr(request, '_data'):
         user_info = request._data.get('user')
         user_form = forms.UserSignupForm()
         organization_form = OrganizationSignupForm()

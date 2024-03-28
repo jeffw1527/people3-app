@@ -126,7 +126,7 @@ export const Menubar = ({
             closeOnClickOutside={!sidebarPinned}
           >
             <div className={`${menubarClass.elem('trigger')} main-menu-trigger`}>
-              <img src={absoluteURL("/static/icons/logo-black.svg")} alt="Label Studio Logo" height="22"/>
+              {/* <img src={absoluteURL("/static/icons/logo-black.svg")} alt="Label Studio Logo" height="22"/> */}
               <Hamburger opened={sidebarOpened}/>
             </div>
           </Dropdown.Trigger>
@@ -213,7 +213,7 @@ export const Menubar = ({
                 )}
 
                 <Menu.Spacer/>
-
+{/* 
                 <VersionNotifier showNewVersion/>
 
                 <Menu.Item
@@ -241,7 +241,7 @@ export const Menubar = ({
                   target="_blank"
                 />
 
-                <VersionNotifier showCurrentVersion/>
+                <VersionNotifier showCurrentVersion/> */}
 
                 <Menu.Divider/>
 

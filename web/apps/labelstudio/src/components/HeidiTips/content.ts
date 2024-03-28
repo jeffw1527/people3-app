@@ -1,7 +1,8 @@
 import { Tip } from "./types";
 
 export const TipsCollection: Record<string, Tip[]> = {
-  projectCreation: [{
+  projectCreation: [
+  {
     title: "Did you know?",
     content: "It’s easier to find the projects when you organize them into workspaces using Label Studio Enterprise.",
     closable: true,
@@ -72,9 +73,10 @@ export const TipsCollection: Record<string, Tip[]> = {
         experiment: "project_creation_tip",
         treatment: "label_with_collaborators",
       },
-    },
-  }],
-  organizationPage: [{
+    }, }
+  ],
+  organizationPage: [
+  {
     title: "It looks like your team is growing!",
     content: "Assign roles to your team using Label Studio Enterprise and control access to sensitive data at the project and workspace levels.",
     closable: true,
@@ -146,8 +148,10 @@ export const TipsCollection: Record<string, Tip[]> = {
         treatment: "integration_points",
       },
     }
-  }],
-  projectSettings: [{
+  }
+  ],
+  projectSettings: [
+  {
     title: "Did you know?",
     content: "You can automatically label and sort tasks by prediction score to maximize labeling efficiency in Label Studio Enterprise.",
     closable: true,
@@ -219,5 +223,6 @@ export const TipsCollection: Record<string, Tip[]> = {
         treatment: "two_clicks",
       },
     },
-  }],
+  },
+  ],
 };
