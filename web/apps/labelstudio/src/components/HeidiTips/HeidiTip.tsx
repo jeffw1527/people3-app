@@ -33,31 +33,29 @@ export const HeidiTip: FC<HeidiTipProps> = ({ tip, onDismiss }) => {
     onDismiss();
   }, []);
 
-  return (
-    <Block name="heidy-tip">
-      <Elem name="content">
-        <Elem name="header">
-          <Elem name="title">
-            {tip.title}
-          </Elem>
-          {tip.closable && (
-            /* @ts-ignore-next-line */
-            <Tooltip title="Don't show">
-              { /* @ts-ignore-next-line */}
-              <Elem name="dismiss" tag={Button} type="text" onClick={handleClick}>
-                <LsCross />
-              </Elem>
-            </Tooltip>
-          )}
-        </Elem>
-        <Elem name="text">
-          {tip.content}
-          <HeidiLink link={tip.link} />
-        </Elem>
-      </Elem>
-      <Elem name="heidi">
-        <HeidiSpeaking />
-      </Elem>
-    </Block>
+  return (<></>
+    // <Block name="heidy-tip">
+    //   <Elem name="content">
+    //     <Elem name="header">
+    //       <Elem name="title">
+    //         {tip.title}
+    //       </Elem>
+    //       {tip.closable && (
+    //         <Tooltip title="Don't show">
+    //           <Elem name="dismiss" tag={Button} type="text" onClick={handleClick}>
+    //             <LsCross />
+    //           </Elem>
+    //         </Tooltip>
+    //       )}
+    //     </Elem>
+    //     <Elem name="text">
+    //       {tip.content}
+    //       <HeidiLink link={tip.link} />
+    //     </Elem>
+    //   </Elem>
+    //   <Elem name="heidi">
+    //     <HeidiSpeaking />
+    //   </Elem>
+    // </Block>
   );
 }
