@@ -85,9 +85,9 @@
 </template>
 
 <script id="app-settings" nonce="{{request.csp_nonce}}">
-  window.APP_SETTINGS = Object.assign({
+  window.APP_SETTINGS = Object.assign(parseInt('{{user.pk}}') ? {
     user: {
-      id: {{ user.pk }},
+      id: {{ user.pk  }},
       username: "{{user.username}}",
       firstName: "{{user.first_name}}",
       lastName: "{{user.last_name}}",
@@ -97,7 +97,7 @@
       {% if user.avatar %}
       avatar: "{{user.avatar_url|safe}}",
       {% endif %}
-    },
+    } || {},
     debug: {{settings.DEBUG|yesno:"true,false"}},
     hostname: "{{settings.HOSTNAME}}",
     version: {{ versions|json_dumps_ensure_ascii|safe }},
