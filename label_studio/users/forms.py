@@ -46,6 +46,7 @@ class LoginForm(forms.Form):
             return {'user': user, 'persist_session': persist_session}
         else:
             raise forms.ValidationError(INVALID_USER_ERROR)
+
     def clean(self, *args, **kwargs):
         cleaned = super(LoginForm, self).clean()
         email = cleaned.get('email', '').lower()
@@ -91,6 +92,7 @@ class UserSignupForm(forms.Form):
     def clean_user(self):
         email = self.email.lower()
         return User.objects.filter(email=email).first()
+
     def clean_email(self):
         email = self.cleaned_data.get('email').lower()
         if len(email) >= EMAIL_MAX_LENGTH:
@@ -109,6 +111,48 @@ class UserSignupForm(forms.Form):
         if 'allow_newsletters' in cleaned:
             allow_newsletters = cleaned['allow_newsletters']
         user = User.objects.create_user(email, password, allow_newsletters=allow_newsletters)
+        return user
+
+
+class ParticleSignForm(forms.Form):
+
+    def clean_email(self):
+        email = self.data.get("user").get('email').lower()
+        # if len(email) >= EMAIL_MAX_LENGTH:
+        #     raise forms.ValidationError('Email is too long')
+        if email and User.objects.filter(email=email).exists():
+            raise forms.ValidationError('User with this email already exists')
+        return email
+
+    def clean_password(self):
+        password = self.data.get("user").get("password")
+        # if len(password) < PASS_MIN_LENGTH:
+        #     raise forms.ValidationError(PASS_LENGTH_ERR)
+        return password
+
+    def clean(self):
+        cleaned_data = {"email": self.clean_email(), "password": self.clean_password()}
+        return cleaned_data
+
+    def clean_user(self, *args, **kwargs):
+        email = self.data.get("user").get('email').lower()
+        password = self.data.get("user").get('password')
+        # advanced way for user auth
+        user = settings.USER_AUTH(User, email, password)
+        # regular access
+        if user is None:
+            user = auth.authenticate(email=email, password=password)
+
+        if user and user.is_active:
+            persist_session = True
+            return {'user': user, 'persist_session': persist_session}
+        else:
+            raise forms.ValidationError(INVALID_USER_ERROR)
+
+    def save(self):
+        email = self.cleaned_data["email"].lower()
+        password = self.cleaned_data["password"]
+        user = User.objects.create_user(email, password)
         return user
 
 

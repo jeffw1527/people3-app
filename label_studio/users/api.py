@@ -1,6 +1,7 @@
 """This file and its contents are licensed under the Apache License 2.0. Please see the included NOTICE for copyright information and LICENSE for a copy of the license.
 """
 import logging
+import sys
 
 import drf_yasg.openapi as openapi
 from core.permissions import ViewClassPermission, all_permissions
@@ -25,6 +26,15 @@ from users.functions import login, proceed_registration
 from core.utils.common import load_func
 
 logger = logging.getLogger(__name__)
+
+logger.setLevel(logging.DEBUG)
+
+
+# handler = logging.StreamHandler(sys.stdout)
+# handler.setLevel(logging.DEBUG)
+# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# handler.setFormatter(formatter)
+# logger.addHandler(handler)
 
 
 @method_decorator(
@@ -200,7 +210,7 @@ class UserResetTokenAPI(APIView):
         token = user.reset_token()
         logger.debug(f'New token for user {user.pk} is {token.key}')
         return Response({'token': token.key}, status=201)
-    
+
 
 @method_decorator(
     name='post',
@@ -230,30 +240,26 @@ class UserSignUpAPI(APIView):
         user = request.user
         next_page = request.GET.get('next')
         token = request.GET.get('token')
-        
+
+        organization_form = OrganizationSignupForm()
         # checks if the URL is a safe redirection.
         if user.is_authenticated:
             return Response({'success': True}, status=200)
         if request.method == 'POST' and hasattr(request, '_data'):
-            user_info = request.data.get('user')
-            user_form = forms.UserSignupForm()
-            organization_form = OrganizationSignupForm()
-            user_form.email = user_info.get('email')
-            user_form.password = user_info.get('password')
-            
-            login_form = load_func(settings.USER_LOGIN_FORM)
-            form = login_form()
-            form.email = user_info.get('email')
-            form.password = user_info.get('password')
-            form.persist_session = True
+            user_form = forms.ParticleSignForm(request.data)
+            user_info = request.data.get("user")
+            if not user_info:
+                return Response({'success': False, "message": "user info can't be empty"}, status=400)
+            email = user_info.get("email")
+            if email and User.objects.filter(email=email).exists():
+                # user already exists go to login
+                user = user_form.clean_user()['user']
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                return Response({'success': True}, status=200)
             if user_form.is_valid():
                 redirect_response = proceed_registration(request, user_form, organization_form, next_page)
                 return Response({'success': True}, status=200)
-            else:
-                
-                user = form.clean_user()['user']
-                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-                return Response({'success': True}, status=200)
+
 
 @method_decorator(
     name='get',

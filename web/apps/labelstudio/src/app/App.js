@@ -69,6 +69,7 @@ const login = async (api, history) => {
   } else {
     userInfo = particle.auth.getUserInfo();
   }
+  console.log("particle user info",userInfo)
   const res = await api.callApi('signup', {
     body: {
       user: {
@@ -77,7 +78,7 @@ const login = async (api, history) => {
       },
     },
   });
-  
+
   console.log('res: ', res);
   if (res.success) {
     location.reload();

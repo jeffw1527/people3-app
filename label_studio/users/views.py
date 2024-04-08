@@ -60,7 +60,6 @@ def user_signup(request):
             redirect_response = proceed_registration(request, user_form, organization_form, next_page)
             return Response({'success': True}, status=200)
         else:
-            
             user = form.clean_user()['user']
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             return Response({'success': True}, status=200)
@@ -146,7 +145,7 @@ def user_login(request):
             # user is organization member
             org_pk = Organization.find_by_user(user).pk
             user.active_organization_id = org_pk
-            user.save(update_fields=['active_organization'])
+            user.save(update_fields=['active_organizatioçn'])
             return redirect(next_page)
     return render(request, 'users/auth.html', {'form': form, 'next': next_page})
 
